@@ -1,32 +1,26 @@
 import { useEffect, useMemo } from "react";
-import mainActions from "../store/actions/mainActions";
-import { useDispatch, useSelector } from "react-redux";
 import { Checkbox, Drawer, Button, Radio, Space } from 'antd';
-
 import { useState } from "react";
 import { MenuOutlined } from '@ant-design/icons';
+import useLoadData from '../hooks/useLoadData';
+import { isColorValid } from '../helpers/index';
 
 const Main = () => {
-    const dispatch = useDispatch()
-    const { list } = useSelector((state) => state.mainReducer)
+    const list = useLoadData();
     const [circleChecked, setCircleChecked] = useState(true)
     const [squareChecked, setSquareChecked] = useState(true)
     const [trgleChecked, settrgleChecked] = useState(true)
     const [open, setOpen] = useState(false);
     const [colors, setColors] = useState([]);
     const [colorsCheckbox, setColorsCheckbox] = useState(colors);
-    const [colorsUpdate, setColorsUpdate] = useState(false);
     const [value, setValue] = useState("all");
-    const filteredList = useMemo(() => filterArray(list), [list, circleChecked, squareChecked, trgleChecked, value, colorsCheckbox.length]);
 
-    useEffect(() => {
-        dispatch(mainActions.loadJsonList())
-    }, [])
+    const filteredList = useMemo(() => filterArray(list), [list, circleChecked, squareChecked, trgleChecked, value, colorsCheckbox.length]);
 
     useEffect(() => {
         let colors = []
         list?.forEach(elem => {
-            if (!colors.includes(elem.color) && elem.color !== 'greed') {
+            if (!colors.includes(elem.color) && isColorValid(elem.color)) {
                 colors.push(elem.color)
             }
         })
@@ -42,7 +36,7 @@ const Main = () => {
         setOpen(false);
     };
 
-    const onChange = (e) => {
+    const onFormChange = (e) => {
         if (e.target.name === 'circle') {
             setCircleChecked(e.target.checked)
         } else if (e.target.name === 'square') {
@@ -52,7 +46,7 @@ const Main = () => {
         }
     }
 
-    const onChange1 = (e) => {
+    const onDarkChange = (e) => {
         setValue(e.target.value);
     };
 
@@ -64,7 +58,6 @@ const Main = () => {
             newList = newList.filter(elem => elem !== e.target.name)
         }
         setColorsCheckbox(newList)
-        setColorsUpdate(!colorsUpdate)
     }
 
     function filterArray(list) {
@@ -73,7 +66,6 @@ const Main = () => {
         let newList3 = list.filter(elem => trgleChecked && elem.form === 'triangle')
         let filteredArr = newList1.concat(newList2).concat(newList3)
         let colorFilter = filteredArr.filter(elem => colorsCheckbox.some(item => item === elem.color))
-
         let arr = colorFilter.filter(el => {
             if (value === "dark" && el.dark) {
                 return true
@@ -85,7 +77,6 @@ const Main = () => {
                 return false
             }
         })
-
         return arr
     }
 
@@ -96,9 +87,9 @@ const Main = () => {
                 <Button type="primary" onClick={showDrawer} style={{ marginRight: '20px' }}>
                     <MenuOutlined />
                 </Button>
-                <Checkbox onChange={onChange} checked={circleChecked} name="circle">Circle</Checkbox>
-                <Checkbox onChange={onChange} checked={squareChecked} name="square">Square</Checkbox>
-                <Checkbox onChange={onChange} checked={trgleChecked} name="triangle">Triangle</Checkbox>
+                <Checkbox onChange={onFormChange} checked={circleChecked} name="circle">Circle</Checkbox>
+                <Checkbox onChange={onFormChange} checked={squareChecked} name="square">Square</Checkbox>
+                <Checkbox onChange={onFormChange} checked={trgleChecked} name="triangle">Triangle</Checkbox>
             </div>
 
             <div className="grid">
@@ -132,7 +123,7 @@ const Main = () => {
                             </label>
                         </div>
                     ))}
-                    <Radio.Group onChange={onChange1} value={value}>
+                    <Radio.Group onChange={onDarkChange} value={value}>
                         <Space direction="vertical">
                             <Radio value="all">Все</Radio>
                             <Radio value="dark">Темные</Radio>
